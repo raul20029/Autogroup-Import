@@ -27,7 +27,7 @@ jobs:
         
     - name: Build with PyInstaller
       # Înlocuiește 'convertor.py' cu numele real al scriptului tău, dacă e diferit
-      run: pyinstaller --onefile --windowed convertor.py
+      run: pyinstaller --onefile --windowed Autogroup.py
       
     - name: Upload EXE artifact
       uses: actions/upload-artifact@v4
