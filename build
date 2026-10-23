@@ -1,6 +1,5 @@
 name: Build Windows EXE
 
-# Scriptul va rula la fiecare push pe branch-ul main sau când îl pornești manual
 on:
   push:
     branches: [ "main" ]
@@ -8,7 +7,6 @@ on:
 
 jobs:
   build:
-    # Cerem un mediu Windows pentru a putea genera un fișier .exe
     runs-on: windows-latest
 
     steps:
@@ -26,8 +24,7 @@ jobs:
         pip install pyinstaller pandas openpyxl
         
     - name: Build with PyInstaller
-      # Înlocuiește 'convertor.py' cu numele real al scriptului tău, dacă e diferit
-      run: pyinstaller --onefile --windowed convertor.py
+      run: pyinstaller --onefile --windowed Autogroup.py
       
     - name: Upload EXE artifact
       uses: actions/upload-artifact@v4
