@@ -1,0 +1,84 @@
+import pandas as pd
+import tkinter as tk
+from tkinter import filedialog, messagebox
+
+def proceseaza_fisier():
+    # 1. Fereastră pentru selectarea fișierului de intrare
+    fisier_intrare = filedialog.askopenfilename(
+        title="Selectează exportul din sistem",
+        filetypes=[("Fișiere Excel", "*.xlsx *.xls"), ("Fișiere CSV", "*.csv"), ("Toate fișierele", "*.*")]
+    )
+    if not fisier_intrare:
+        return # Utilizatorul a anulat selecția
+
+    # 2. Fereastră pentru alegerea destinației de salvare
+    fisier_iesire = filedialog.asksaveasfilename(
+        title="Salvează fișierul de import ca...",
+        defaultextension=".csv",
+        filetypes=[("Fișiere CSV", "*.csv")],
+        initialfile="import_final.csv"
+    )
+    if not fisier_iesire:
+        return # Utilizatorul a anulat salvarea
+
+    # 3. Logica de procesare Pandas
+    try:
+        # Citim inteligent în funcție de extensie
+        if fisier_intrare.endswith('.csv'):
+            df_sursa = pd.read_csv(fisier_intrare, sep=None, engine='python')
+        else:
+            df_sursa = pd.read_excel(fisier_intrare)
+
+        df_import = pd.DataFrame()
+        
+        df_import['DODÁVATEĽ *'] = df_sursa['Product name'].astype(str).str.split().str[0]
+        df_import['ČÍSLO DIELU *'] = df_sursa['External']
+        df_import['NÁZOV DIELU'] = df_sursa['Text']
+        df_import['POČET DNÍ DODANIA'] = ''
+        df_import['POZNÁMKA'] = ''
+        df_import['MNOŽSTVO *'] = pd.to_numeric(df_sursa['Quantity'], errors='coerce').fillna(0).astype(int)
+        df_import['CENA JEDNOTKOVÁ'] = df_sursa['Unit price']
+
+        if df_sursa['Net amount'].dtype == 'object':
+            df_import['CENA SPOLU'] = df_sursa['Net amount'].astype(str).str.replace(',', '').astype(float)
+        else:
+            df_import['CENA SPOLU'] = df_sursa['Net amount']
+
+        df_import['VIN'] = ''
+
+        # Generăm fișierul CSV
+        df_import.to_csv(fisier_iesire, sep=';', index=False, encoding='utf-8-sig')
+        
+        # Afișăm un mesaj de succes
+        messagebox.showinfo("Operațiune reușită", f"Fișierul a fost generat cu succes!\n\nSalvat în: {fisier_iesire}")
+        
+    except KeyError as e:
+        messagebox.showerror("Eroare de structură", f"Coloana {str(e)} nu a fost găsită în fișierul selectat.\nVerifică dacă ai ales exportul corect.")
+    except Exception as e:
+        messagebox.showerror("Eroare", f"A apărut o problemă la procesare:\n{str(e)}")
+
+# --- Configurarea interfeței grafice (GUI) ---
+root = tk.Tk()
+root.title("Convertor Date Import")
+root.geometry("450x180")
+root.eval('tk::PlaceWindow . center') # Centrează fereastra pe ecran
+
+label_info = tk.Label(
+    root, 
+    text="Acest utilitar transformă exportul brut din sistem\nîntr-un CSV formatat exact pentru import.", 
+    pady=20
+)
+label_info.pack()
+
+btn_start = tk.Button(
+    root, 
+    text="Selectează Fișier și Convertește", 
+    command=proceseaza_fisier, 
+    padx=20, 
+    pady=10,
+    font=("Arial", 10, "bold")
+)
+btn_start.pack()
+
+# Pornește aplicația
+root.mainloop()
