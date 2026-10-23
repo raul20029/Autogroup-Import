@@ -1,0 +1,36 @@
+name: Build Windows EXE
+
+# Scriptul va rula la fiecare push pe branch-ul main sau când îl pornești manual
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    # Cerem un mediu Windows pentru a putea genera un fișier .exe
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pyinstaller pandas openpyxl
+        
+    - name: Build with PyInstaller
+      # Înlocuiește 'convertor.py' cu numele real al scriptului tău, dacă e diferit
+      run: pyinstaller --onefile --windowed convertor.py
+      
+    - name: Upload EXE artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: Program-Import-CSV
+        path: dist/*.exe
